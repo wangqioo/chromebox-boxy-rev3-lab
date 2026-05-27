@@ -83,6 +83,10 @@ scripts/chromeboxctl snapshot
 
 See [docs/chromeboxctl.md](docs/chromeboxctl.md) and [docs/ai-native-os-plan.md](docs/ai-native-os-plan.md).
 
+## Exploration Roadmap
+
+Use [docs/exploration-roadmap.md](docs/exploration-roadmap.md) as the working plan for exploring the system: baseline snapshots, Crostini development, host control, dashboarding, remote access, and hardware boundaries.
+
 ## Board Notes
 
 General ChromiumOS board and image research now lives in [docs/board-notes](docs/board-notes/README.md). Use it as the decision layer before spending time on unsupported hardware; keep device-specific logs and scripts in this lab repository.

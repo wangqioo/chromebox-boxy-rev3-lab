@@ -3,6 +3,7 @@
 ## Immediate
 
 - Treat `scripts/chromeboxctl` as the first controlled AI interface.
+- Follow `docs/exploration-roadmap.md` as the shared working plan.
 - Use `docs/board-notes/README.md` as the shared map for ChromiumOS-like options beyond this specific Chromebox.
 - Install baseline Debian packages in `penguin`.
 - Keep ChromeOS host SSH recovery documented and minimal.
