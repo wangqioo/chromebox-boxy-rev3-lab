@@ -57,7 +57,9 @@ The SSH aliases live in the Mac user's `~/.ssh/config`. They are not committed b
 docs/
   board-notes/        ChromiumOS-like system notes for PCs, Raspberry Pi, Rockchip, and ports
   bringup.md          End-to-end setup log from zero to SSH access
+  chromebox-control-app-spec.md Nervus app spec for controlled ChromeOS inspection
   device-inventory.md Hardware, OS, storage, network, and virtualization snapshot
+  nervus-on-chromeos-plan.md Nervus Lite deployment plan for this Chromebox
   operating-model.md  How we should use ChromeOS host vs Linux container
 scripts/
   chromeboxctl        Controlled Mac-side helper for ChromeOS host inspection
@@ -86,6 +88,10 @@ See [docs/chromeboxctl.md](docs/chromeboxctl.md) and [docs/ai-native-os-plan.md]
 ## Exploration Roadmap
 
 Use [docs/exploration-roadmap.md](docs/exploration-roadmap.md) as the working plan for exploring the system: baseline snapshots, Crostini development, host control, dashboarding, remote access, and hardware boundaries.
+
+## Nervus on ChromeOS
+
+Use [docs/nervus-on-chromeos-plan.md](docs/nervus-on-chromeos-plan.md) to adapt `nervus-v1` into a lightweight AI-native control layer for this Chromebox. The first custom app is specified in [docs/chromebox-control-app-spec.md](docs/chromebox-control-app-spec.md).
 
 ## Board Notes
 

@@ -4,6 +4,7 @@
 
 - Treat `scripts/chromeboxctl` as the first controlled AI interface.
 - Follow `docs/exploration-roadmap.md` as the shared working plan.
+- Use `docs/nervus-on-chromeos-plan.md` to adapt Nervus as the AI-native control layer.
 - Use `docs/board-notes/README.md` as the shared map for ChromiumOS-like options beyond this specific Chromebox.
 - Install baseline Debian packages in `penguin`.
 - Keep ChromeOS host SSH recovery documented and minimal.
@@ -11,6 +12,8 @@
 ## Useful Development Directions
 
 - Make `penguin` a lightweight internal development host.
+- Create a Nervus Lite compose profile for Crostini.
+- Implement the `chromebox-control` Nervus app around `scripts/chromeboxctl`.
 - Add a small status dashboard for the device.
 - Add scripts to collect hardware and ChromeOS health snapshots.
 - Split broad board research into per-board notes when a target becomes active.

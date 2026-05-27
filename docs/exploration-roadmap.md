@@ -73,7 +73,7 @@ Keep confirmation gates around:
 
 Goal: make the current device state visible without SSH spelunking.
 
-Start with a small read-only dashboard fed by snapshots or controlled commands.
+Start with a small read-only dashboard fed by snapshots or controlled commands. The preferred long-term shell is a lightweight Nervus deployment in Crostini; see [nervus-on-chromeos-plan.md](nervus-on-chromeos-plan.md).
 
 Useful panels:
 
@@ -150,7 +150,8 @@ Use the template from `docs/board-notes/README.md`.
 These can be done before the machine is reachable from the current network:
 
 1. Add `snapshot --save` to `scripts/chromeboxctl`.
-2. Add `docs/remote-access-plan.md`.
-3. Split board notes into per-family files when the single README gets too large.
-4. Build a tiny dashboard prototype that can read saved snapshot files.
-5. Add a `snapshots/README.md` explaining what is safe to commit and what stays local.
+2. Create the Nervus Lite compose profile in `nervus-v1`.
+3. Implement the `chromebox-control` Nervus app from [chromebox-control-app-spec.md](chromebox-control-app-spec.md).
+4. Add `docs/remote-access-plan.md`.
+5. Build a tiny dashboard prototype that can read saved snapshot files.
+6. Add a `snapshots/README.md` explaining what is safe to commit and what stays local.
