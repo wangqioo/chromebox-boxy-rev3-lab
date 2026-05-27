@@ -2,6 +2,7 @@
 set -euo pipefail
 
 HOST="${CHROMEBOX_HOST:-chromebox}"
+SSH_CONNECT_TIMEOUT="${CHROMEBOX_SSH_CONNECT_TIMEOUT:-8}"
 REMOTE_PATH='export PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/bin'
 
 usage() {
@@ -10,6 +11,7 @@ chromeboxctl - controlled helper for the ChromeOS host
 
 Usage:
   scripts/chromeboxctl status
+  scripts/chromeboxctl health
   scripts/chromeboxctl network
   scripts/chromeboxctl storage
   scripts/chromeboxctl hardware
@@ -20,6 +22,8 @@ Usage:
 
 Environment:
   CHROMEBOX_HOST   SSH host alias to use. Default: chromebox
+  CHROMEBOX_SSH_CONNECT_TIMEOUT
+                   SSH connect timeout in seconds. Default: 8
 
 Policy:
   Most commands are read-only. restore-ssh is the only write action in v0.
@@ -27,7 +31,7 @@ USAGE
 }
 
 remote() {
-  ssh -o LogLevel=ERROR "$HOST" "$REMOTE_PATH; $*" 2> >(grep -v 'script from noexec mount' >&2)
+  ssh -o LogLevel=ERROR -o ConnectTimeout="$SSH_CONNECT_TIMEOUT" "$HOST" "$REMOTE_PATH; $*" 2> >(grep -v 'script from noexec mount' >&2)
 }
 
 section() {
@@ -43,6 +47,94 @@ status() {
   remote 'uptime'
   section "Memory"
   remote 'free -h'
+}
+
+health() {
+  section "Health"
+  remote '
+    pass=0
+    warn=0
+    fail=0
+
+    report() {
+      state="$1"
+      name="$2"
+      detail="$3"
+      printf "%-5s %-22s %s\n" "$state" "$name" "$detail"
+      case "$state" in
+        PASS) pass=$((pass + 1)) ;;
+        WARN) warn=$((warn + 1)) ;;
+        FAIL) fail=$((fail + 1)) ;;
+      esac
+    }
+
+    release="$(. /etc/lsb-release 2>/dev/null; printf "%s" "${CHROMEOS_RELEASE_DESCRIPTION:-unknown}")"
+    report PASS chromeos "$release"
+
+    if crossystem devsw_cur 2>/dev/null | grep -qx 1; then
+      report PASS devmode enabled
+    else
+      report WARN devmode "not enabled or unreadable"
+    fi
+
+    root_use="$(df -P / | awk "NR==2 {gsub(/%/, \"\", \$5); print \$5}")"
+    stateful_use="$(df -P /mnt/stateful_partition | awk "NR==2 {gsub(/%/, \"\", \$5); print \$5}")"
+    mem_avail_mb="$(free -m | awk "/^Mem:/ {print \$7}")"
+    swap_used_mb="$(free -m | awk "/^Swap:/ {print \$3}")"
+
+    if [ "${root_use:-100}" -lt 95 ]; then
+      report PASS rootfs "${root_use}% used"
+    else
+      report WARN rootfs "${root_use}% used"
+    fi
+
+    if [ "${stateful_use:-100}" -lt 85 ]; then
+      report PASS stateful "${stateful_use}% used"
+    elif [ "${stateful_use:-100}" -lt 95 ]; then
+      report WARN stateful "${stateful_use}% used"
+    else
+      report FAIL stateful "${stateful_use}% used"
+    fi
+
+    if [ "${mem_avail_mb:-0}" -gt 1024 ]; then
+      report PASS memory "${mem_avail_mb}MB available"
+    else
+      report WARN memory "${mem_avail_mb}MB available"
+    fi
+
+    if [ "${swap_used_mb:-0}" -lt 1024 ]; then
+      report PASS swap "${swap_used_mb}MB used"
+    else
+      report WARN swap "${swap_used_mb}MB used"
+    fi
+
+    if ip -br addr show wlan0 2>/dev/null | grep -q "UP .*192\\.168\\."; then
+      report PASS wlan0 "$(ip -br addr show wlan0 | awk "{print \$3}")"
+    else
+      report WARN wlan0 "not up or no LAN IPv4"
+    fi
+
+    if ip -br addr 2>/dev/null | grep -q "^vmtap"; then
+      report PASS crostini-net "$(ip -br addr | awk "/^vmtap/ {print \$3; exit}")"
+    else
+      report WARN crostini-net "vmtap interface not found"
+    fi
+
+    if ps aux | grep -v grep | grep -q "crosvm .*VM(33)"; then
+      report PASS crosvm running
+    else
+      report WARN crosvm "termina VM not detected"
+    fi
+
+    if netstat -ltn 2>/dev/null | grep -q ":2223 "; then
+      report PASS sshd "listening on 2223"
+    else
+      report WARN sshd "2223 not listening"
+    fi
+
+    printf "\nSummary: PASS=%s WARN=%s FAIL=%s\n" "$pass" "$warn" "$fail"
+    [ "$fail" -eq 0 ]
+  '
 }
 
 network() {
@@ -88,6 +180,7 @@ snapshot() {
   section "Snapshot Time"
   date -u '+%Y-%m-%dT%H:%M:%SZ'
   status
+  health
   network
   storage
   hardware
@@ -96,12 +189,13 @@ snapshot() {
 }
 
 restore_ssh() {
-  ssh -tt -o LogLevel=ERROR "$HOST" "$REMOTE_PATH; sudo /usr/local/bin/restore-ssh" 2> >(grep -v 'script from noexec mount' >&2)
+  ssh -tt -o LogLevel=ERROR -o ConnectTimeout="$SSH_CONNECT_TIMEOUT" "$HOST" "$REMOTE_PATH; sudo /usr/local/bin/restore-ssh" 2> >(grep -v 'script from noexec mount' >&2)
 }
 
 cmd="${1:-}"
 case "$cmd" in
   status) status ;;
+  health) health ;;
   network) network ;;
   storage) storage ;;
   hardware) hardware ;;

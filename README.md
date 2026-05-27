@@ -74,6 +74,7 @@ The first AI-safe control surface is:
 
 ```sh
 scripts/chromeboxctl status
+scripts/chromeboxctl health
 scripts/chromeboxctl snapshot
 ```
 

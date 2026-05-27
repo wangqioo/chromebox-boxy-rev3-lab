@@ -35,6 +35,7 @@ Do not give the AI unconstrained root access as the default operating mode.
 The first safe capability surface is `scripts/chromeboxctl`:
 
 - inspect status
+- inspect health
 - inspect network
 - inspect storage
 - inspect hardware
@@ -47,7 +48,6 @@ The first safe capability surface is `scripts/chromeboxctl`:
 
 Candidate next additions:
 
-- `chromeboxctl health` for a compact pass/fail report
 - `chromeboxctl snapshot --save` to write timestamped reports
 - `chromeboxctl container status` for Crostini details
 - `chromeboxctl proxy status` for LAN proxy checks
@@ -66,4 +66,3 @@ High-risk actions should stay confirmation-gated:
 - modifying account or credential state
 
 Normal development belongs in the `penguin` Debian container.
-

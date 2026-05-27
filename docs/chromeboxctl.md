@@ -12,6 +12,7 @@ ssh chromebox
 
 ```sh
 scripts/chromeboxctl status
+scripts/chromeboxctl health
 scripts/chromeboxctl network
 scripts/chromeboxctl storage
 scripts/chromeboxctl hardware
@@ -28,6 +29,7 @@ Default command policy:
 | Command | Risk | Writes to ChromeOS host? |
 | --- | --- | --- |
 | `status` | low | no |
+| `health` | low | no |
 | `network` | low | no |
 | `storage` | low | no |
 | `hardware` | low | no |
@@ -67,4 +69,3 @@ scripts/chromeboxctl snapshot > snapshots/$(date +%Y%m%d-%H%M%S)-chromebox.md
 ```
 
 Snapshots may contain local IP addresses and process paths. Review before publishing outside the private repo.
-
