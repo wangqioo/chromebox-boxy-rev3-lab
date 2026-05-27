@@ -1,6 +1,8 @@
-# Chromebox Boxy Rev3 Lab
+# ChromeOS / ChromiumOS Device Lab
 
-This repository documents and develops against a Google ChromeOS device identified as `boxy-rev3` / `dedede`.
+This repository documents and develops against ChromeOS and ChromiumOS-like systems.
+
+The active hardware lab is a Google ChromeOS device identified as `boxy-rev3` / `dedede`. The repository also includes broader board notes for ChromiumOS-like routes on PCs, Raspberry Pi, Rockchip boards, and future ports.
 
 The device was brought up from a fresh ChromeOS setup into:
 
@@ -53,6 +55,7 @@ The SSH aliases live in the Mac user's `~/.ssh/config`. They are not committed b
 
 ```text
 docs/
+  board-notes/        ChromiumOS-like system notes for PCs, Raspberry Pi, Rockchip, and ports
   bringup.md          End-to-end setup log from zero to SSH access
   device-inventory.md Hardware, OS, storage, network, and virtualization snapshot
   operating-model.md  How we should use ChromeOS host vs Linux container
@@ -79,3 +82,7 @@ scripts/chromeboxctl snapshot
 ```
 
 See [docs/chromeboxctl.md](docs/chromeboxctl.md) and [docs/ai-native-os-plan.md](docs/ai-native-os-plan.md).
+
+## Board Notes
+
+General ChromiumOS board and image research now lives in [docs/board-notes](docs/board-notes/README.md). Use it as the decision layer before spending time on unsupported hardware; keep device-specific logs and scripts in this lab repository.
