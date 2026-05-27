@@ -130,55 +130,43 @@ Keep model files off the Chromebox eMMC unless explicitly testing a tiny model.
 
 ## Deployment Layout
 
-In Crostini:
+In Crostini, keep the repositories side by side:
 
 ```text
 ~/nervus/
-  docker-compose.yml
-  docker-compose.chromebox-lite.yml
-  .env
-  frontend/
   core/
-  apps/
   config/
+  nervus-cli/
 ```
-
-The lab repository stays separate:
 
 ```text
 ~/chromebox-boxy-rev3-lab/
   scripts/chromeboxctl
+  scripts/install-nervus-integration.sh
+  integrations/nervus/
   docs/
   snapshots/
 ```
 
-Nervus calls into this lab repository through the `chromebox-control` app. Do not merge the repositories unless the ownership boundary changes later.
+Nervus stays generic. This lab repository owns the ChromeOS-specific widget and installs it into a local Nervus checkout when needed.
 
 ## Compose Strategy
 
-Create a Nervus override file in `nervus-v1`, not in this lab repository:
-
-```text
-docker-compose.chromebox-lite.yml
-```
-
-It should:
-
-- disable heavy services by omission
-- publish only required local ports
-- mount `frontend/`, `config/`, and selected data volumes
-- keep Postgres, Redis, and NATS persistent
-- point `LLAMA_URL` at a remote endpoint
-- avoid binding host port `443` until LAN access is proven
-
-Start with:
+Install the integration:
 
 ```sh
-docker compose -f docker-compose.yml -f docker-compose.chromebox-lite.yml up -d \
-  arbor-core caddy postgres redis nats app-status-sense app-file-manager app-workflow-viewer
+cd ~/chromebox-boxy-rev3-lab
+scripts/install-nervus-integration.sh ../nervus-v1
 ```
 
-Then add `app-chromebox-control` when implemented.
+Then run Nervus single-process Arbor:
+
+```sh
+cd ~/nervus-v1/core/arbor
+export CHROMEBOX_CTL=../../../chromebox-boxy-rev3-lab/scripts/chromeboxctl
+export CHROMEBOX_HOST=chromebox
+python main.py
+```
 
 ## Browser and iOS Shell
 
@@ -196,7 +184,7 @@ For iOS:
 
 ## ChromeOS Control Integration
 
-`chromebox-control` should wrap `scripts/chromeboxctl` as a Nervus app.
+The Chromebox integration should wrap `scripts/chromeboxctl` as a Nervus widget.
 
 Read-only endpoints can run without extra confirmation:
 
@@ -221,7 +209,7 @@ The app should emit events into Nervus:
 - `system.chromeos.crostini.warning`
 - `system.chromeos.ssh.warning`
 
-See [chromebox-control-app-spec.md](chromebox-control-app-spec.md).
+See [chromebox-control-app-spec.md](chromebox-control-app-spec.md) and [../integrations/nervus](../integrations/nervus/README.md).
 
 ## AI-native UX Mapping
 

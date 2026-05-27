@@ -63,7 +63,10 @@ docs/
   operating-model.md  How we should use ChromeOS host vs Linux container
 scripts/
   chromeboxctl        Controlled Mac-side helper for ChromeOS host inspection
+  install-nervus-integration.sh Install this lab's Chromebox widget into a Nervus checkout
   restore-ssh.sh      ChromeOS-side SSH recovery script template
+integrations/
+  nervus/             Chromebox-specific Nervus widget and install notes
 notes/
   next-steps.md       Suggested future work
 snapshots/            Local diagnostic outputs, ignored by git
@@ -91,7 +94,7 @@ Use [docs/exploration-roadmap.md](docs/exploration-roadmap.md) as the working pl
 
 ## Nervus on ChromeOS
 
-Use [docs/nervus-on-chromeos-plan.md](docs/nervus-on-chromeos-plan.md) to adapt `nervus-v1` into a lightweight AI-native control layer for this Chromebox. The first custom app is specified in [docs/chromebox-control-app-spec.md](docs/chromebox-control-app-spec.md).
+Use [docs/nervus-on-chromeos-plan.md](docs/nervus-on-chromeos-plan.md) to adapt `nervus-v1` into a lightweight AI-native control layer for this Chromebox. The ChromeOS-specific integration lives in [integrations/nervus](integrations/nervus/README.md) and can be installed into a local Nervus checkout with `scripts/install-nervus-integration.sh`.
 
 ## Board Notes
 
