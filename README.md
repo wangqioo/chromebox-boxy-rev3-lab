@@ -57,12 +57,24 @@ docs/
   device-inventory.md Hardware, OS, storage, network, and virtualization snapshot
   operating-model.md  How we should use ChromeOS host vs Linux container
 scripts/
+  chromeboxctl        Controlled Mac-side helper for ChromeOS host inspection
   restore-ssh.sh      ChromeOS-side SSH recovery script template
 notes/
   next-steps.md       Suggested future work
+snapshots/            Local diagnostic outputs, ignored by git
 ```
 
 ## Operating Rule
 
 Use the ChromeOS host for device management and hardware inspection. Use the Linux container for normal development, package installs, services, and experiments.
 
+## Controlled AI Interface
+
+The first AI-safe control surface is:
+
+```sh
+scripts/chromeboxctl status
+scripts/chromeboxctl snapshot
+```
+
+See [docs/chromeboxctl.md](docs/chromeboxctl.md) and [docs/ai-native-os-plan.md](docs/ai-native-os-plan.md).

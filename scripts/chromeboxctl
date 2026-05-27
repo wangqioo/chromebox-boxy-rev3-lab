@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+HOST="${CHROMEBOX_HOST:-chromebox}"
+REMOTE_PATH='export PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/bin'
+
+usage() {
+  cat <<'USAGE'
+chromeboxctl - controlled helper for the ChromeOS host
+
+Usage:
+  scripts/chromeboxctl status
+  scripts/chromeboxctl network
+  scripts/chromeboxctl storage
+  scripts/chromeboxctl hardware
+  scripts/chromeboxctl devmode
+  scripts/chromeboxctl vm
+  scripts/chromeboxctl snapshot
+  scripts/chromeboxctl restore-ssh
+
+Environment:
+  CHROMEBOX_HOST   SSH host alias to use. Default: chromebox
+
+Policy:
+  Most commands are read-only. restore-ssh is the only write action in v0.
+USAGE
+}
+
+remote() {
+  ssh -o LogLevel=ERROR "$HOST" "$REMOTE_PATH; $*" 2> >(grep -v 'script from noexec mount' >&2)
+}
+
+section() {
+  printf '\n## %s\n\n' "$1"
+}
+
+status() {
+  section "Identity"
+  remote 'hostname; whoami; cat /etc/lsb-release | egrep "CHROMEOS_RELEASE_DESCRIPTION|CHROMEOS_RELEASE_VERSION|CHROMEOS_RELEASE_TRACK|CHROMEOS_RELEASE_BOARD|CHROMEOS_RELEASE_CHROME_MILESTONE"'
+  section "Kernel"
+  remote 'uname -a'
+  section "Uptime"
+  remote 'uptime'
+  section "Memory"
+  remote 'free -h'
+}
+
+network() {
+  section "Addresses"
+  remote 'ip -br addr'
+  section "Routes"
+  remote 'ip route'
+  section "Listeners"
+  remote 'sudo netstat -ltnp 2>/dev/null | egrep "(:22|:2223|:8889|LISTEN)" || netstat -ltn 2>/dev/null | head -80'
+}
+
+storage() {
+  section "Block Devices"
+  remote 'lsblk'
+  section "Filesystems"
+  remote 'df -h'
+  section "Important Mounts"
+  remote 'mount | egrep " / |/mnt/stateful_partition|/usr/local|/home/chronos|crostini|encstateful"'
+}
+
+hardware() {
+  section "CPU"
+  remote 'cat /proc/cpuinfo | egrep "model name|cpu cores|siblings|vmx" | head -20'
+  section "PCI"
+  remote 'lspci 2>/dev/null | head -120'
+  section "USB"
+  remote 'lsusb 2>/dev/null || true'
+}
+
+devmode() {
+  section "Crossystem"
+  remote 'crossystem 2>/dev/null | egrep "devsw|mainfw|fwid|hwid|wpsw|block_devmode|recoverysw|kernkey_vfy|rootdev|dev_boot" || true'
+}
+
+vm() {
+  section "Crostini Processes"
+  remote 'ps aux | awk '\''/crosvm|vsh|termina|penguin|vm_concierge|seneschal|garcon/ && !/awk/ {cmd=$11; for (i=12; i<=NF && i<=16; i++) cmd=cmd " " $i; printf "%-12s %-7s %-5s %-5s %s\n", $1, $2, $3, $4, cmd}'\'' || true'
+  section "VM Network"
+  remote 'ip -br addr | egrep "vmtap|wlan|eth|lo"; ip route | egrep "100\\.115|default" || true'
+}
+
+snapshot() {
+  section "Snapshot Time"
+  date -u '+%Y-%m-%dT%H:%M:%SZ'
+  status
+  network
+  storage
+  hardware
+  devmode
+  vm
+}
+
+restore_ssh() {
+  ssh -tt -o LogLevel=ERROR "$HOST" "$REMOTE_PATH; sudo /usr/local/bin/restore-ssh" 2> >(grep -v 'script from noexec mount' >&2)
+}
+
+cmd="${1:-}"
+case "$cmd" in
+  status) status ;;
+  network) network ;;
+  storage) storage ;;
+  hardware) hardware ;;
+  devmode) devmode ;;
+  vm) vm ;;
+  snapshot) snapshot ;;
+  restore-ssh) restore_ssh ;;
+  -h|--help|help|"") usage ;;
+  *)
+    echo "Unknown command: $cmd" >&2
+    usage >&2
+    exit 2
+    ;;
+esac

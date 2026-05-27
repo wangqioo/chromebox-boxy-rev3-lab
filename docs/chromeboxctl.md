@@ -1,0 +1,70 @@
+# chromeboxctl
+
+`chromeboxctl` is the first controlled interface for AI-assisted management of the ChromeOS host.
+
+It runs from the Mac and talks to the ChromeOS host through the local SSH alias:
+
+```sh
+ssh chromebox
+```
+
+## Commands
+
+```sh
+scripts/chromeboxctl status
+scripts/chromeboxctl network
+scripts/chromeboxctl storage
+scripts/chromeboxctl hardware
+scripts/chromeboxctl devmode
+scripts/chromeboxctl vm
+scripts/chromeboxctl snapshot
+scripts/chromeboxctl restore-ssh
+```
+
+## Permission Model
+
+Default command policy:
+
+| Command | Risk | Writes to ChromeOS host? |
+| --- | --- | --- |
+| `status` | low | no |
+| `network` | low | no |
+| `storage` | low | no |
+| `hardware` | low | no |
+| `devmode` | low | no |
+| `vm` | low | no |
+| `snapshot` | low | no |
+| `restore-ssh` | medium | yes |
+
+`restore-ssh` runs:
+
+```sh
+sudo /usr/local/bin/restore-ssh
+```
+
+It restores the local SSH server and firewall rule for the ChromeOS host. This is intentionally the only write action in v0.
+
+## AI Operating Boundary
+
+The AI agent may use read-only commands without extra confirmation when diagnosing the device.
+
+The AI agent should ask before running:
+
+- `restore-ssh`
+- any command with `sudo`
+- any command that changes firewall rules
+- any command that modifies files outside this repository
+- any command that opens the device to the public internet
+- any command that deletes data
+
+## Snapshot Workflow
+
+Capture a local status report:
+
+```sh
+mkdir -p snapshots
+scripts/chromeboxctl snapshot > snapshots/$(date +%Y%m%d-%H%M%S)-chromebox.md
+```
+
+Snapshots may contain local IP addresses and process paths. Review before publishing outside the private repo.
+

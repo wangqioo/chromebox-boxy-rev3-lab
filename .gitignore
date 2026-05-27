@@ -2,7 +2,7 @@
 *.log
 *.tmp
 secrets/
+snapshots/
 *.key
 *.pem
 id_*
-

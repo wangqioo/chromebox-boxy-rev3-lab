@@ -2,7 +2,7 @@
 
 ## Immediate
 
-- Decide what the first project on this device should be.
+- Treat `scripts/chromeboxctl` as the first controlled AI interface.
 - Install baseline Debian packages in `penguin`.
 - Keep ChromeOS host SSH recovery documented and minimal.
 
@@ -19,4 +19,3 @@
 - Should this device stay on stable ChromeOS, or move to another channel later?
 - Should remote access remain LAN-only, or use a controlled tunnel?
 - Should development target Crostini only, or should a full alternate OS be evaluated?
-
