@@ -11,6 +11,7 @@ ssh chromebox
 ## Commands
 
 ```sh
+scripts/chromeboxctl doctor
 scripts/chromeboxctl status
 scripts/chromeboxctl health
 scripts/chromeboxctl network
@@ -19,6 +20,7 @@ scripts/chromeboxctl hardware
 scripts/chromeboxctl devmode
 scripts/chromeboxctl vm
 scripts/chromeboxctl snapshot
+scripts/chromeboxctl snapshot --save
 scripts/chromeboxctl restore-ssh
 ```
 
@@ -28,6 +30,7 @@ Default command policy:
 
 | Command | Risk | Writes to ChromeOS host? |
 | --- | --- | --- |
+| `doctor` | low | no |
 | `status` | low | no |
 | `health` | low | no |
 | `network` | low | no |
@@ -36,6 +39,7 @@ Default command policy:
 | `devmode` | low | no |
 | `vm` | low | no |
 | `snapshot` | low | no |
+| `snapshot --save` | low | no, writes local `snapshots/` only |
 | `restore-ssh` | medium | yes |
 
 `restore-ssh` runs:
@@ -64,8 +68,21 @@ The AI agent should ask before running:
 Capture a local status report:
 
 ```sh
-mkdir -p snapshots
-scripts/chromeboxctl snapshot > snapshots/$(date +%Y%m%d-%H%M%S)-chromebox.md
+scripts/chromeboxctl snapshot --save
 ```
 
 Snapshots may contain local IP addresses and process paths. Review before publishing outside the private repo.
+
+## Connectivity Doctor
+
+When the device is unreachable:
+
+```sh
+scripts/chromeboxctl doctor
+```
+
+This checks the local SSH alias, identity file, and whether the ChromeOS host can be reached. If SSH is down, wake the device and run this on the ChromeOS Developer Console:
+
+```sh
+sudo /usr/local/bin/restore-ssh
+```

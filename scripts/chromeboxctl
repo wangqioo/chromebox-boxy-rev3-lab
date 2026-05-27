@@ -10,6 +10,7 @@ usage() {
 chromeboxctl - controlled helper for the ChromeOS host
 
 Usage:
+  scripts/chromeboxctl doctor
   scripts/chromeboxctl status
   scripts/chromeboxctl health
   scripts/chromeboxctl network
@@ -17,7 +18,7 @@ Usage:
   scripts/chromeboxctl hardware
   scripts/chromeboxctl devmode
   scripts/chromeboxctl vm
-  scripts/chromeboxctl snapshot
+  scripts/chromeboxctl snapshot [--save]
   scripts/chromeboxctl restore-ssh
 
 Environment:
@@ -34,8 +35,55 @@ remote() {
   ssh -o LogLevel=ERROR -o ConnectTimeout="$SSH_CONNECT_TIMEOUT" "$HOST" "$REMOTE_PATH; $*" 2> >(grep -v 'script from noexec mount' >&2)
 }
 
+ssh_config_value() {
+  ssh -G "$HOST" 2>/dev/null | awk -v key="$1" '$1 == key {print $2; exit}'
+}
+
 section() {
   printf '\n## %s\n\n' "$1"
+}
+
+doctor() {
+  section "Local Doctor"
+
+  if command -v ssh >/dev/null 2>&1; then
+    printf "PASS  %-22s %s\n" ssh "$(command -v ssh)"
+  else
+    printf "FAIL  %-22s %s\n" ssh "ssh command not found"
+    return 1
+  fi
+
+  host_name="$(ssh_config_value hostname || true)"
+  port="$(ssh_config_value port || true)"
+  user="$(ssh_config_value user || true)"
+  identity_file="$(ssh_config_value identityfile || true)"
+
+  printf "INFO  %-22s %s\n" host-alias "$HOST"
+  printf "INFO  %-22s %s\n" hostname "${host_name:-unknown}"
+  printf "INFO  %-22s %s\n" port "${port:-22}"
+  printf "INFO  %-22s %s\n" user "${user:-unknown}"
+  printf "INFO  %-22s %s\n" identity "${identity_file:-default}"
+
+  if [ -n "${identity_file:-}" ] && [ -f "${identity_file/#\~/$HOME}" ]; then
+    printf "PASS  %-22s %s\n" identity-file exists
+  elif [ -n "${identity_file:-}" ]; then
+    printf "WARN  %-22s %s\n" identity-file "not found at ${identity_file}"
+  else
+    printf "WARN  %-22s %s\n" identity-file "not configured"
+  fi
+
+  if ssh -o BatchMode=yes -o ConnectTimeout="$SSH_CONNECT_TIMEOUT" -o LogLevel=ERROR "$HOST" 'true' 2>/tmp/chromeboxctl-doctor.err; then
+    printf "PASS  %-22s %s\n" ssh-connect ok
+  else
+    err="$(tr '\n' ' ' </tmp/chromeboxctl-doctor.err | sed 's/[[:space:]]\+/ /g')"
+    printf "FAIL  %-22s %s\n" ssh-connect "${err:-failed}"
+    printf "\nRecovery hint:\n"
+    printf "  1. Wake the Chromebox and confirm it is on the same LAN.\n"
+    printf "  2. In the ChromeOS Developer Console, run:\n"
+    printf "     sudo /usr/local/bin/restore-ssh\n"
+    printf "  3. Retry: scripts/chromeboxctl doctor\n"
+    return 1
+  fi
 }
 
 status() {
@@ -188,12 +236,20 @@ snapshot() {
   vm
 }
 
+save_snapshot() {
+  mkdir -p snapshots
+  file="snapshots/$(date +%Y%m%d-%H%M%S)-chromebox.md"
+  snapshot > "$file"
+  printf "%s\n" "$file"
+}
+
 restore_ssh() {
   ssh -tt -o LogLevel=ERROR -o ConnectTimeout="$SSH_CONNECT_TIMEOUT" "$HOST" "$REMOTE_PATH; sudo /usr/local/bin/restore-ssh" 2> >(grep -v 'script from noexec mount' >&2)
 }
 
 cmd="${1:-}"
 case "$cmd" in
+  doctor) doctor ;;
   status) status ;;
   health) health ;;
   network) network ;;
@@ -201,7 +257,16 @@ case "$cmd" in
   hardware) hardware ;;
   devmode) devmode ;;
   vm) vm ;;
-  snapshot) snapshot ;;
+  snapshot)
+    case "${2:-}" in
+      --save) save_snapshot ;;
+      "" ) snapshot ;;
+      *)
+        echo "Unknown snapshot option: $2" >&2
+        exit 2
+        ;;
+    esac
+    ;;
   restore-ssh) restore_ssh ;;
   -h|--help|help|"") usage ;;
   *)

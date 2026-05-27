@@ -35,6 +35,7 @@ Do not give the AI unconstrained root access as the default operating mode.
 The first safe capability surface is `scripts/chromeboxctl`:
 
 - inspect status
+- diagnose connectivity
 - inspect health
 - inspect network
 - inspect storage

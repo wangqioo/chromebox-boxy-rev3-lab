@@ -107,6 +107,7 @@ Crostini Linux 容器是开发层，用来做：
 当前最小安全控制面是：
 
 ```sh
+scripts/chromeboxctl doctor
 scripts/chromeboxctl status
 scripts/chromeboxctl health
 scripts/chromeboxctl snapshot
